@@ -23,7 +23,23 @@ MESSAGES = {
         "error_reading_pdf": "Erro ao ler o PDF:",
         "pdf_corruption_warning": "Por favor, verifique se o arquivo PDF não está corrompido, protegido por senha ou em um formato inválido.",
         "select_language": "Selecione o Idioma:",
-        "no_keywords_info": "Nenhuma palavra-chave encontrada (exceto stopwords e palavras curtas)."
+        "no_keywords_info": "Nenhuma palavra-chave encontrada (exceto stopwords e palavras curtas).",
+        "search_options_header": "Opções de Busca:",
+        "case_sensitive_checkbox": "Diferenciar maiúsculas/minúsculas",
+        "whole_word_checkbox": "Apenas palavras inteiras",
+        "stats_header": "Estatísticas do Documento:",
+        "total_words_count": "Total de palavras no documento:",
+        "term_occurrences": "Ocorrências dos Termos:",
+        "download_results_button": "Baixar Resultados (.txt)",
+        "download_filename": "resultados_busca.txt",
+        "page_number_label": "Página:",
+        "clear_button_label": "Limpar Tudo",
+        "pdf_manual_conversion_guidance": "Se este erro persistir, o PDF pode ter uma proteção avançada. Tente converter o PDF para texto simples (TXT) usando uma ferramenta online (ex: 'PDF para TXT' do Smallpdf ou Adobe Acrobat online) e depois carregue o TXT no campo de texto para busca, ou use um PDF que não tenha essa proteção.",
+        "process_button_label": "Processar Busca",
+        "initial_guidance": "Faça o upload de um arquivo PDF e insira os termos de busca. Em seguida, clique em 'Processar Busca'.",
+        # --- NOVAS MENSAGENS ---
+        "copy_results_button": "Copiar Resultados",
+        "copy_instructions": "Copie o texto abaixo:"
     },
     "en": {
         "upload_instructions": "Upload a PDF file and enter the terms (words, phrases, topics) you want to find. Each term should be on a new line in the text box below.",
@@ -41,7 +57,23 @@ MESSAGES = {
         "error_reading_pdf": "Error reading PDF:",
         "pdf_corruption_warning": "Please check if the PDF file is not corrupted, password-protected, or in an invalid format.",
         "select_language": "Select Language:",
-        "no_keywords_info": "No keywords found (excluding stopwords and short words)."
+        "no_keywords_info": "No keywords found (excluding stopwords and short words).",
+        "search_options_header": "Search Options:",
+        "case_sensitive_checkbox": "Case-sensitive search",
+        "whole_word_checkbox": "Whole words only",
+        "stats_header": "Document Statistics:",
+        "total_words_count": "Total words in document:",
+        "term_occurrences": "Term Occurrences:",
+        "download_results_button": "Download Results (.txt)",
+        "download_filename": "search_results.txt",
+        "page_number_label": "Page:",
+        "clear_button_label": "Clear All",
+        "pdf_manual_conversion_guidance": "If this error persists, the PDF might have advanced protection. Try converting the PDF to plain text (TXT) using an online tool (e.g., Smallpdf 'PDF to TXT' or Adobe Acrobat online) and then upload the TXT to the text input field for searching, or use a PDF without such protection.",
+        "process_button_label": "Process Search",
+        "initial_guidance": "Upload a PDF file and enter search terms. Then click 'Process Search'.",
+        # --- NOVAS MENSAGENS ---
+        "copy_results_button": "Copy Results",
+        "copy_instructions": "Copy the text below:"
     }
 }
 
