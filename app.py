@@ -1,5 +1,3 @@
-# app.py
-
 import streamlit as st
 import io
 import re
@@ -8,6 +6,7 @@ from collections import Counter
 # Importa as funções e configurações dos outros módulos
 from pdf_processor import extract_text_from_pdf, find_matches_and_snippets
 from config import APP_NAME, MESSAGES, SUPPORTED_LANGUAGES
+from session_state_manager import initialize_session_state, clear_all_state # Novo
 
 # --- Configuração da Página (DEVE SER O PRIMEIRO COMANDO STREAMLIT) ---
 st.set_page_config(
@@ -17,46 +16,17 @@ st.set_page_config(
 )
 
 # --- Inicialização e Seleção de Idioma ---
+initialize_session_state() # Chama a função do novo módulo
 
-if 'lang' not in st.session_state:
-    st.session_state.lang = "pt"
-
-# Inicializa o contador para a chave do uploader (para forçar reset)
-if 'uploader_key_counter' not in st.session_state:
-    st.session_state.uploader_key_counter = 0
-
-# Inicializa estados dos widgets para permitir reset controlado
-if 'search_terms_textarea' not in st.session_state:
-    st.session_state.search_terms_textarea = ""
-if 'case_sensitive_checkbox' not in st.session_state:
-    st.session_state.case_sensitive_checkbox = False
-if 'whole_word_checkbox' not in st.session_state:
-    st.session_state.whole_word_checkbox = True
-if 'enable_regex_checkbox' not in st.session_state:
-    st.session_state.enable_regex_checkbox = False
-# Variável de estado para controlar se os resultados foram exibidos (para a mensagem inicial)
-if 'results_displayed' not in st.session_state:
-    st.session_state.results_displayed = False
-# Variável de estado para controlar a exibição da área de texto para copiar
-if 'show_copy_area' not in st.session_state:
-    st.session_state.show_copy_area = False
-
-# --- VARIÁVEIS DE SESSÃO PARA ARMAZENAR OS RESULTADOS AGREGADOS ---
-if 'last_processed_results' not in st.session_state:
-    st.session_state.last_processed_results = None
-
-
-# --- FUNÇÃO AUXILIAR get_text (POSIÇÃO DEFINITIVA) ---
+# --- FUNÇÃO AUXILIAR get_text ---
 def get_text(key):
     return MESSAGES[st.session_state.lang][key]
-
 
 # --- SEÇÃO SOBRE / AJUDA NA BARRA LATERAL ---
 with st.sidebar.expander(get_text("about_header")):
     st.markdown(get_text("about_content_1"))
     st.markdown(get_text("about_content_2"))
     st.markdown(get_text("about_limitations"))
-
 
 # --- SELEÇÃO DE IDIOMA ---
 current_lang_options = list(SUPPORTED_LANGUAGES.keys())
@@ -70,7 +40,6 @@ st.sidebar.radio(
     key="lang_selector",
     on_change=lambda: st.session_state.update(lang=st.session_state.lang_selector)
 )
-
 
 # --- Interface do Aplicativo ---
 st.title(APP_NAME[st.session_state.lang])
@@ -94,37 +63,27 @@ with input_col_uploader:
     st.markdown("<br><br>", unsafe_allow_html=True)
     uploaded_files_list = st.file_uploader(get_text("file_uploader_label"), type="pdf", accept_multiple_files=True, key=f"pdf_uploader_{st.session_state.uploader_key_counter}")
 
-
 # --- OPÇÕES DE BUSCA DENTRO DE UM EXPANDER ---
 with st.expander(get_text("search_options_header")):
-    col_opt1, col_opt2, col_opt3 = st.columns(3)
+    col_opt1, col_opt2, col_opt3, col_opt4 = st.columns(4) # Mais uma coluna
     with col_opt1:
         case_sensitive = st.checkbox(get_text("case_sensitive_checkbox"), key="case_sensitive_checkbox")
     with col_opt2:
         whole_word_only = st.checkbox(get_text("whole_word_checkbox"), key="whole_word_checkbox")
     with col_opt3:
         enable_regex = st.checkbox(get_text("enable_regex_checkbox"), key="enable_regex_checkbox", help=get_text("regex_help_text"))
+    with col_opt4:
+        enable_ocr_fallback = st.checkbox(get_text("enable_ocr_fallback_checkbox"), key="enable_ocr_fallback_checkbox", help=get_text("ocr_help_text")) # Nova opção
 
 st.divider()
-
-
-# --- BOTÃO LIMPAR TUDO ---
-def clear_all_state():
-    st.session_state.search_terms_textarea = ""
-    st.session_state.case_sensitive_checkbox = False
-    st.session_state.whole_word_checkbox = True
-    st.session_state.enable_regex_checkbox = False
-    st.session_state.uploader_key_counter += 1
-    st.session_state.results_displayed = False
-    st.session_state.show_copy_area = False
-    st.session_state.last_processed_results = None
 
 # Determina se o botão "Limpar Tudo" deve estar desabilitado
 is_app_in_initial_state = ( (uploaded_files_list is None or len(uploaded_files_list) == 0) and
                            st.session_state.search_terms_textarea == "" and
                            not st.session_state.case_sensitive_checkbox and
                            st.session_state.whole_word_checkbox and
-                           not st.session_state.enable_regex_checkbox )
+                           not st.session_state.enable_regex_checkbox and
+                           not st.session_state.enable_ocr_fallback_checkbox ) # Adicionado novo checkbox
 
 st.button(get_text("clear_button_label"), on_click=clear_all_state, disabled=is_app_in_initial_state)
 
@@ -134,7 +93,6 @@ search_terms_list = [term.strip() for term in st.session_state.search_terms_text
 process_button_disabled = (uploaded_files_list is None or len(uploaded_files_list) == 0) or not search_terms_list
 process_button_clicked = st.button(get_text("process_button_label"), disabled=process_button_disabled, on_click=lambda: st.session_state.update({"_process_clicked": True}), icon=get_text("process_button_icon"))
 
-
 # --- Lógica de Processamento ativada apenas pelo clique do botão ---
 if st.session_state.get("_process_clicked", False):
     st.session_state["_process_clicked"] = False
@@ -142,6 +100,7 @@ if st.session_state.get("_process_clicked", False):
     st.session_state.show_copy_area = False
     st.session_state.results_displayed = False
     st.session_state.last_processed_results = None
+    st.session_state.current_page = 1 # Resetar página ao processar nova busca
 
     if (uploaded_files_list is None or len(uploaded_files_list) == 0):
         st.warning(get_text("please_upload_file"))
@@ -156,9 +115,14 @@ if st.session_state.get("_process_clicked", False):
 
         with st.spinner(get_text("processing_spinner")):
             for uploaded_file in uploaded_files_list:
-                st.info(f"{get_text('processing_file')} '{uploaded_file.name}'...")
+                progress_text = st.empty() # Placeholder para o texto de progresso
 
-                full_text_combined, pages_data, file_name = extract_text_from_pdf(uploaded_file, MESSAGES[st.session_state.lang])
+                def update_progress(current, total, file):
+                    progress_text.text(f"{get_text('processing_file')} '{file}': {get_text('page_progress').format(current=current, total=total)}")
+
+                st.info(f"{get_text('processing_file')} '{uploaded_file.name}'...")
+                full_text_combined, pages_data, file_name = extract_text_from_pdf(uploaded_file, MESSAGES[st.session_state.lang], enable_ocr_fallback, update_progress)
+                progress_text.empty() # Limpa o texto de progresso após o processamento do arquivo
 
                 if full_text_combined and pages_data:
                     found_terms_file, snippets_file, term_occurrences_file, total_words_file = \
@@ -225,7 +189,6 @@ if st.session_state.results_displayed and st.session_state.last_processed_result
         if selected_filter_term != get_text("all_terms_filter"):
             filtered_snippets = [s for s in snippets if s['term'] == selected_filter_term]
 
-        # Ordenação aplicada a todos os snippets filtrados
         if selected_sort_option_key == "page":
             filtered_snippets.sort(key=lambda x: (x['page_num'], x['file_name']))
         elif selected_sort_option_key == "file_page":
@@ -275,24 +238,51 @@ if st.session_state.results_displayed and st.session_state.last_processed_result
                     help="Selecione o texto e copie (Ctrl+C ou Cmd+C)"
                 )
 
-            # --- EXIBIÇÃO AGRUPADA POR ARQUIVO ---
-            # Pega nomes de arquivos únicos dos snippets FILTRADOS
-            unique_files_in_filtered_results = sorted(list(set(s['file_name'] for s in filtered_snippets)))
+            # --- Paginação ---
+            snippets_per_page = 10
+            total_snippets = len(filtered_snippets)
+            total_pages = (total_snippets + snippets_per_page - 1) // snippets_per_page
 
-            for file_name in unique_files_in_filtered_results:
-                st.markdown(f"#### {get_text('results_from_file')} `{file_name}`") # Título para cada arquivo
+            if 'current_page' not in st.session_state:
+                st.session_state.current_page = 1
 
-                # Filtra os snippets já filtrados/ordenados globalmente para o arquivo atual
-                snippets_for_this_file = [s for s in filtered_snippets if s['file_name'] == file_name]
+            # Garante que a página atual não exceda o total de páginas
+            if st.session_state.current_page > total_pages and total_pages > 0:
+                st.session_state.current_page = total_pages
+            elif total_pages == 0:
+                st.session_state.current_page = 0 # Nenhuma página se não há snippets
 
-                if snippets_for_this_file:
-                    for item in snippets_for_this_file:
-                        # Adapta a exibição: o nome do arquivo já está no título do grupo
+            if total_pages > 0: # Exibir botões de navegação apenas se houver páginas
+                col_prev, col_page_info, col_next = st.columns([1,2,1])
+                with col_prev:
+                    if st.session_state.current_page > 1:
+                        st.button(get_text("previous_page_button"), on_click=lambda: st.session_state.update(current_page=st.session_state.current_page - 1))
+                with col_page_info:
+                    st.markdown(f"<p style='text-align: center;'>{get_text('page_info').format(current=st.session_state.current_page, total=total_pages)}</p>", unsafe_allow_html=True)
+                with col_next:
+                    if st.session_state.current_page < total_pages:
+                        st.button(get_text("next_page_button"), on_click=lambda: st.session_state.update(current_page=st.session_state.current_page + 1))
+            else:
+                st.info(get_text("no_snippets_found_on_page")) # Mensagem para quando não há snippets filtrados
+
+            start_idx = (st.session_state.current_page - 1) * snippets_per_page
+            end_idx = start_idx + snippets_per_page
+            snippets_to_display = filtered_snippets[start_idx:end_idx]
+
+            # --- EXIBIÇÃO AGRUPADA POR ARQUIVO (usando snippets_to_display) ---
+            if snippets_to_display:
+                unique_files_in_displayed_results = sorted(list(set(s['file_name'] for s in snippets_to_display)))
+                for file_name in unique_files_in_displayed_results:
+                    st.markdown(f"#### {get_text('results_from_file')} `{file_name}`")
+
+                    snippets_for_this_file_and_page = [s for s in snippets_to_display if s['file_name'] == file_name]
+
+                    for item in snippets_for_this_file_and_page:
                         st.markdown(f"**{get_text('terms_found_header').replace(':', '')}:** `{item['term']}` ({get_text('page_number_label')} {item['page_num']})")
                         st.markdown(f"...{item['snippet']}...", unsafe_allow_html=True)
                         st.markdown("---")
-                else:
-                    st.info(f"{get_text('no_snippets_found')} {get_text('results_from_file').lower()} '{file_name}'.")
+            elif total_pages > 0: # Se houver páginas mas a atual não tiver snippets (devido a filtro, por exemplo)
+                st.info(get_text("no_snippets_found_on_page"))
 
         else: # Nenhum snippet após a filtragem/ordenação
             st.info(get_text("no_snippets_found"))

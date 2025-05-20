@@ -1,5 +1,3 @@
-# config.py
-
 APP_NAME = {
     "pt": "Localizador de Termos em PDFs",
     "en": "PDF Term Finder"
@@ -51,14 +49,22 @@ MESSAGES = {
         "about_content_1": "Este aplicativo permite que você extraia texto de PDFs e busque por termos ou frases específicas. Você pode carregar múltiplos PDFs e personalizar sua busca.",
         "about_content_2": "Os resultados incluem estatísticas do documento e trechos relevantes com o número da página e o arquivo de origem. Você pode baixar ou copiar os resultados.",
         "about_limitations": "**Limitações Conhecidas:**\n- **PDFs Protegidos/Criptografados:** Alguns PDFs com proteção avançada não podem ser lidos diretamente. Uma sugestão aparece se houver um erro de leitura.\n- **Performance:** PDFs muito grandes podem demorar para processar e consumir mais memória.",
-        "process_button_icon": "🚀", # ÍCONE CORRIGIDO
-        "clear_button_icon": "🗑️", # ÍCONE CORRIGIDO
-        "download_button_icon": "📥", # ÍCONE CORRIGIDO
-        "copy_button_icon": "📋", # ÍCONE CORRIGIDO
+        "process_button_icon": "🚀",
+        "clear_button_icon": "🗑️",
+        "download_button_icon": "📥",
+        "copy_button_icon": "📋",
         "regex_help_text": "Use sintaxe de Expressão Regular. Ex: 'email:(\\S+@\\S+)' para emails.",
         "expander_results_header": "Ver Resultados",
         "expander_results_header_with_count": "Ver Resultados ({count} trechos encontrados)",
-        "favicon_icon": "📚"
+        "favicon_icon": "📚",
+        "enable_ocr_fallback_checkbox": "Tentar OCR como fallback (Experimental)",
+        "ocr_help_text": "Se a extração normal falhar, tenta usar OCR para ler texto de imagens. Requer Tesseract-OCR instalado no sistema.",
+        "ocr_failure_warning": "O OCR também falhou ao extrair texto deste PDF. Por favor, tente a conversão manual.",
+        "page_progress": "Página {current} de {total}",
+        "previous_page_button": "Página Anterior",
+        "next_page_button": "Próxima Página",
+        "page_info": "Página {current} de {total}",
+        "no_snippets_found_on_page": "Nenhum trecho encontrado nesta página para os filtros aplicados."
     },
     "en": {
         "upload_instructions": "Upload one or more PDF files and enter the terms (words, phrases, topics) you want to find. Each term should be on a new line in the text box below.",
@@ -111,7 +117,15 @@ MESSAGES = {
         "regex_help_text": "Use Regular Expression syntax. E.g., 'email:(\\S+@\\S+)' for emails.",
         "expander_results_header": "View Results",
         "expander_results_header_with_count": "View Results ({count} snippets found)",
-        "favicon_icon": "📚"
+        "favicon_icon": "📚",
+        "enable_ocr_fallback_checkbox": "Try OCR as fallback (Experimental)",
+        "ocr_help_text": "If normal extraction fails, attempts to use OCR to read text from images. Requires Tesseract-OCR installed on the system.",
+        "ocr_failure_warning": "OCR also failed to extract text from this PDF. Please try manual conversion.",
+        "page_progress": "Page {current} of {total}",
+        "previous_page_button": "Previous Page",
+        "next_page_button": "Next Page",
+        "page_info": "Page {current} of {total}",
+        "no_snippets_found_on_page": "No snippets found on this page for the applied filters."
     }
 }
 
